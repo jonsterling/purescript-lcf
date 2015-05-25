@@ -41,19 +41,14 @@ splitAt n ls =
 mapShape :: forall a b e. List Number -> List (List a -> Eff (err :: Exception | e) b) -> List a -> Eff (err :: Exception | e) (List b)
 mapShape Nil _ _ = return Nil
 mapShape (Cons n ns) (Cons f fs) xs = do
-  Tuple f1_args xs'  <- splitAt n xs
-  Cons <$> f f1_args <*> mapShape ns fs xs'
+  Tuple ys zs <- splitAt n xs
+  Cons <$> f ys <*> mapShape ns fs zs
 
 refine :: forall j d e. Validation d e -> List (List j) -> List (Validation d e) -> ProofState j d e
 refine v subgoals vs =
   { subgoals : subgoals >>= id
   , validation : \ds -> mapShape (length <$> subgoals) vs ds >>= v
   }
-
-
-foreign import hole
-   """
-   """ :: forall a. a
 
 idT :: forall j d e. Tactic j d e
 idT = Tactic \j ->
@@ -65,7 +60,10 @@ idT = Tactic \j ->
   }
 
 unzipProofStates :: forall j d e. List (ProofState j d e) -> Tuple (List (List j)) (List (Validation  d e))
-unzipProofStates = hole
+unzipProofStates = go $ Tuple Nil Nil
+  where
+    go r Nil = r
+    go (Tuple jss vs) (Cons s ss) = go (Tuple (Cons s.subgoals jss) (Cons s.validation vs)) ss
 
 lazyThenLT :: forall j d e. Tactic j d e -> Lazy (List (Tactic j d e)) -> Tactic j d e
 lazyThenLT t1 tsl = Tactic \j ->
