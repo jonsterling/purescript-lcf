@@ -16,10 +16,14 @@ module LCF
 
 , tryT
 , repeatT
+
+, notT
+, impliesT
 ) where
 
 import Control.Monad.Eff
 import Control.Monad.Eff.Exception
+import Data.Either
 import Data.List
 import Data.Monoid
 import Data.Traversable
@@ -43,8 +47,8 @@ splitAt n ls =
   if n < 0
     then throwException $ error "splitAt: negative index"
     else if n == 0
-      then return $ Tuple Nil ls
-      else return $ go n ls
+      then pure $ Tuple Nil ls
+      else pure $ go n ls
   where
     go _ Nil = Tuple Nil Nil
     go 1 (Cons x xs) = Tuple (Cons x Nil) xs
@@ -53,7 +57,7 @@ splitAt n ls =
         Tuple xs' xs'' -> Tuple (Cons x xs') xs''
 
 mapShape :: forall a b e. List Number -> List (List a -> Eff (err :: Exception | e) b) -> List a -> Eff (err :: Exception | e) (List b)
-mapShape Nil _ _ = return Nil
+mapShape Nil _ _ = pure Nil
 mapShape (Cons n ns) (Cons f fs) xs = do
   Tuple ys zs <- splitAt n xs
   Cons <$> f ys <*> mapShape ns fs zs
@@ -70,7 +74,7 @@ idT = Tactic \j -> pure
   { subgoals: Cons j Nil
   , validation: \ds ->
       case ds of
-        Cons d Nil -> return d
+        Cons d Nil -> pure d
         _ -> throwException $ error "idTac: Wrong number of subderivations"
   }
 
@@ -156,6 +160,18 @@ tryT t = orElseT t idT
 -- | `repeatT` repeats a tactic for as long as it succeeds. `repeatT` never fails.
 repeatT :: forall j d e. Tactic j d e -> Tactic j d e
 repeatT t = tryT $ t `lazyThenT` defer \_ -> tryT $ repeatT t
+
+-- | Succeeds if the tactic fails; fails if the tactic succeeds.
+notT :: forall j d e. Tactic j d e -> Tactic j d e
+notT t = Tactic \j -> do
+  res <- catchException' (\_ -> Left <$> (idT `runTactic` j)) $ (Right <$> t `runTactic` j)
+  case res of
+    Left st -> pure st
+    Right st -> throwException $ error "notT"
+
+-- | Classical "implication" of tactics: either the left tactic fails, or the right tactic succeeds. Note: I am not sure if this is useful at all, but it seemed interesting it was definable.
+impliesT :: forall j d e. Tactic j d e -> Tactic j d e -> Tactic j d e
+impliesT t1 t2 = notT t1 `orElseT` t2
 
 -- | The tactics also give rise to another semigroup and monoid structure, given by disjunction and failure.
 newtype AdditiveTactic j d e = AdditiveTactic (Tactic j d e)

@@ -114,6 +114,22 @@ repeatT :: forall j d e. Tactic j d e -> Tactic j d e
 
 `repeatT` repeats a tactic for as long as it succeeds. `repeatT` never fails.
 
+#### `notT`
+
+``` purescript
+notT :: forall j d e. Tactic j d e -> Tactic j d e
+```
+
+Succeeds if the tactic fails; fails if the tactic succeeds.
+
+#### `impliesT`
+
+``` purescript
+impliesT :: forall j d e. Tactic j d e -> Tactic j d e -> Tactic j d e
+```
+
+Classical "implication" of tactics: either the left tactic fails, or the right tactic succeeds. Note: I am not sure if this is useful at all, but it seemed interesting it was definable.
+
 #### `AdditiveTactic`
 
 ``` purescript
@@ -145,6 +161,41 @@ instance monoidAdditiveTactic :: Monoid (AdditiveTactic j d e)
 ```
 
 The monoid arises from the `failT` tactic, which is the unit of `orElseT`.
+
+
+## Module LCF.Notation
+
+#### `(/\)`
+
+``` purescript
+(/\) :: forall j d e. Tactic j d e -> Tactic j d e -> Tactic j d e
+```
+
+An abbreviation for `thenT`.
+
+#### `(\/)`
+
+``` purescript
+(\/) :: forall j d e. Tactic j d e -> Tactic j d e -> Tactic j d e
+```
+
+An abbreviation for `orElseT`.
+
+#### `(/\*)`
+
+``` purescript
+(/\*) :: forall j d e. Tactic j d e -> [Tactic j d e] -> Tactic j d e
+```
+
+An abbreviation for `thenLT`.
+
+#### `(~>)`
+
+``` purescript
+(~>) :: forall j d e. Tactic j d e -> Tactic j d e -> Tactic j d e
+```
+
+An abbreviation for `impliesT`.
 
 
 
