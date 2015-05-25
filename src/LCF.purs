@@ -11,8 +11,10 @@ module LCF
 , lazyThenT
 , thenLT
 , thenT
+, idT
 , lazyOrElseT
 , orElseT
+, failT
 
 , tryT
 , repeatT

@@ -34,6 +34,14 @@ runTactic :: forall j d e. Tactic j d e -> j -> Eff (err :: Exception | e) (Proo
 ```
 
 
+#### `idT`
+
+``` purescript
+idT :: forall j d e. Tactic j d e
+```
+
+The identity tactic has no effect on the proof state.
+
 #### `lazyThenLT`
 
 ``` purescript
@@ -97,6 +105,14 @@ orElseT :: forall j d e. Tactic j d e -> Tactic j d e -> Tactic j d e
 ```
 
 `orElseT` t1 t2` first tries `t1`, and if it fails, then tries `t2`.
+
+#### `failT`
+
+``` purescript
+failT :: forall j d e. Tactic j d e
+```
+
+`failT` always fails.
 
 #### `tryT`
 
