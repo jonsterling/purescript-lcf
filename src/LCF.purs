@@ -52,7 +52,7 @@ refine v subgoals vs =
 
 idT :: forall j d e. Tactic j d e
 idT = Tactic \j ->
-  { subgoals: Nil
+  { subgoals: Cons j Nil
   , validation: \ds ->
       case ds of
         Cons d Nil -> return d
