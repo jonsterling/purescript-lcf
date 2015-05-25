@@ -22,7 +22,7 @@ A `ProofState j d e` is a list of subgoals (judgements `j`) and a validation.
 
 ``` purescript
 newtype Tactic j d e
-  = Tactic (j -> ProofState j d e)
+  = Tactic (j -> Eff (err :: Exception | e) (ProofState j d e))
 ```
 
 A `Tactic j d e` is a strategy for constructing a proof in `d` of a judgement in `j` by transforming the proof state.
@@ -30,7 +30,7 @@ A `Tactic j d e` is a strategy for constructing a proof in `d` of a judgement in
 #### `runTactic`
 
 ``` purescript
-runTactic :: forall j d e. Tactic j d e -> j -> ProofState j d e
+runTactic :: forall j d e. Tactic j d e -> j -> Eff (err :: Exception | e) (ProofState j d e)
 ```
 
 
