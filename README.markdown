@@ -82,5 +82,50 @@ instance monoidTactic :: Monoid (Tactic j d e)
 
 Tactics form a monoid via the `idT` tactic, which is the unit of `thenT`.
 
+#### `lazyOrElseT`
+
+``` purescript
+lazyOrElseT :: forall j d e. Tactic j d e -> Lazy (Tactic j d e) -> Tactic j d e
+```
+
+`lazyOrElseT` t1 t2` first tries `t1`, and if it fails, then tries `t2`.
+
+#### `orElseT`
+
+``` purescript
+orElseT :: forall j d e. Tactic j d e -> Tactic j d e -> Tactic j d e
+```
+
+`orElseT` t1 t2` first tries `t1`, and if it fails, then tries `t2`.
+
+#### `AdditiveTactic`
+
+``` purescript
+newtype AdditiveTactic j d e
+  = AdditiveTactic (Tactic j d e)
+```
+
+
+#### `getAdditiveTactic`
+
+``` purescript
+getAdditiveTactic :: forall j d e. AdditiveTactic j d e -> Tactic j d e
+```
+
+
+#### `semigroupAdditiveTactic`
+
+``` purescript
+instance semigroupAdditiveTactic :: Semigroup (AdditiveTactic j d e)
+```
+
+
+#### `monoidAdditiveTactic`
+
+``` purescript
+instance monoidAdditiveTactic :: Monoid (AdditiveTactic j d e)
+```
+
+
 
 
