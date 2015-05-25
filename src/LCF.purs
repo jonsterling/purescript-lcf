@@ -123,9 +123,9 @@ instance monoidTactic :: Monoid (Tactic j d e) where
   mempty = idT
 
 -- A weird hack.
-foreign import catchException'
+foreign import myCatchException
    """
-   function catchException(c) {
+   function myCatchException(c) {
      return function(t) {
        return function() {
          try {
@@ -145,7 +145,7 @@ foreign import catchException'
 -- | `lazyOrElseT` t1 t2` first tries `t1`, and if it fails, then tries `t2`.
 lazyOrElseT :: forall j d e. Tactic j d e -> Lazy (Tactic j d e) -> Tactic j d e
 lazyOrElseT t1 t2 = Tactic \j ->
-  catchException' (\_ -> force t2 `runTactic` j) $ t1 `runTactic` j
+  myCatchException (\_ -> force t2 `runTactic` j) $ t1 `runTactic` j
 
 -- | `orElseT` t1 t2` first tries `t1`, and if it fails, then tries `t2`.
 orElseT :: forall j d e. Tactic j d e -> Tactic j d e -> Tactic j d e
@@ -166,7 +166,7 @@ repeatT t = tryT $ t `lazyThenT` defer \_ -> tryT $ repeatT t
 -- | Succeeds if the tactic fails; fails if the tactic succeeds.
 notT :: forall j d e. Tactic j d e -> Tactic j d e
 notT t = Tactic \j -> do
-  res <- catchException' (\_ -> Left <$> (idT `runTactic` j)) $ (Right <$> t `runTactic` j)
+  res <- myCatchException (\_ -> Left <$> (idT `runTactic` j)) $ (Right <$> t `runTactic` j)
   case res of
     Left st -> pure st
     Right st -> throwException $ error "notT"

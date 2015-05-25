@@ -1,6 +1,6 @@
 module Test.Main where
 
-import qualified LCF as LC
+import qualified LCF as LCF
 import LCF.Notation
 
 import Control.Monad.Eff
@@ -8,6 +8,7 @@ import Control.Monad.Eff.Exception
 import Data.List
 import Debug.Trace
 
+-- A simple propositional logic
 data Prop = True | False | Conj Prop Prop
 
 instance showProp :: Show Prop where
@@ -15,6 +16,13 @@ instance showProp :: Show Prop where
   show False = "False"
   show (Conj p q) = "(" <> show p <> " & " <> show q <> ")"
 
+-- The judgements of our logical theory
+data Judgement = IsTrue Prop
+
+instance showJudgement :: Show Judgement where
+  show (IsTrue p) = show p <> " true"
+
+-- These are the derivations of the judgements
 data Proof = Ax | Abort Proof | Pair Proof Proof
 
 instance showProof :: Show Proof where
@@ -22,19 +30,18 @@ instance showProof :: Show Proof where
   show (Abort r) = "abort(" <> show r <> ")"
   show (Pair m n) = "<" <> show m <> ", " <> show n <> ">"
 
-data Judgement = IsTrue Prop
-
-instance showJudgement :: Show Judgement where
-  show (IsTrue p) = show p <> " true"
-
 type Tactic e = LCF.Tactic Judgement Proof e
 
-unitIntroT :: forall e. Tactic e
-unitIntroT = LCF.Tactic \j ->
+-- ⊢ True true by trueIntroT
+trueIntroT :: forall e. Tactic e
+trueIntroT = LCF.Tactic \j ->
   case j of
     IsTrue True -> pure { subgoals : Nil, validation : \_ -> pure Ax }
-    _ -> throwException $ error "unitIntroT"
+    _ -> throwException $ error "trueIntroT"
 
+-- ⊢ P & Q true by prodIntroT
+--   1. ⊢ P true
+--   2. ⊢ Q true
 conjIntroT :: forall e. Tactic e
 conjIntroT = LCF.Tactic \j ->
   case j of
@@ -52,9 +59,12 @@ assert j t = do
   state <- t `LCF.runTactic` j
   if null state.subgoals
     then state.validation Nil
-    else throwException $ error $ "subgoals remaining: " <> show state.subgoals
+    else throwException $ error $ "subgoals remaining: " <> show (toArray state.subgoals)
 
 main = do
-  let goal = IsTrue $ Conj True True
-  proof <- assert goal $ conjIntroT <> unitIntroT
+  let
+    goal = IsTrue $ Conj True (Conj True True)
+    autoT = LCF.repeatT $ trueIntroT \/ conjIntroT
+
+  proof <- assert goal autoT
   print proof
