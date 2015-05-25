@@ -18,7 +18,7 @@ import Data.List
 
 -- | An abbreviation for `thenLT`.
 (/\*) :: forall j d e. Tactic j d e -> [Tactic j d e] -> Tactic j d e
-(/\*) t = thenLT t <<< fromArray
+(/\*) = thenLT
 
 -- | An abbreviation for `impliesT`.
 (~>) :: forall j d e. Tactic j d e -> Tactic j d e -> Tactic j d e
