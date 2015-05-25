@@ -101,7 +101,7 @@ lazyThenT :: forall j d e. Tactic j d e -> Lazy (Tactic j d e) -> Tactic j d e
 lazyThenT t1 t2l = Tactic \j -> do
   state1 <- t1 `runTactic` j
   if null state1.subgoals then pure state1 else do
-    states <- traverse (runTactic $ force t2l) state1.subgoals
+    states <- runTactic (force t2l) `traverse` state1.subgoals
     case unzipProofStates states of
        Tuple subgoals validations ->
          pure $ refine state1.validation subgoals validations

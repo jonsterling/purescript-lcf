@@ -39,7 +39,7 @@ trueIntroT = LCF.Tactic \j ->
     IsTrue True -> pure { subgoals : Nil, validation : \_ -> pure Ax }
     _ -> throwException $ error "trueIntroT"
 
--- ⊢ P & Q true by prodIntroT
+-- ⊢ P & Q true by conjIntroT
 --   1. ⊢ P true
 --   2. ⊢ Q true
 conjIntroT :: forall e. Tactic e
