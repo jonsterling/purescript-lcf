@@ -23,7 +23,7 @@ type Validation d e = List d -> Eff (err :: Exception | e) d
 -- | A `ProofState j d e` is a list of subgoals (judgements `j`) and a validation.
 type ProofState j d e = { subgoals :: List j, validation :: Validation d e }
 
--- | A `Tactic j d e` is a strategy for proving some judgement by transforming the proof state.
+-- | A `Tactic j d e` is a strategy for constructing a proof in `d` of a judgement in `j` by transforming the proof state.
 newtype Tactic j d e = Tactic (j -> ProofState j d e)
 
 runTactic :: forall j d e. Tactic j d e -> j -> ProofState j d e
