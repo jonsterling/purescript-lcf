@@ -13,6 +13,9 @@ module LCF
 , thenT
 , lazyOrElseT
 , orElseT
+
+, tryT
+, repeatT
 ) where
 
 import Control.Monad.Eff
@@ -142,16 +145,28 @@ lazyOrElseT t1 t2 = Tactic \j ->
 orElseT :: forall j d e. Tactic j d e -> Tactic j d e -> Tactic j d e
 orElseT t1 t2 = lazyOrElseT t1 $ pure t2
 
+-- | `failT` always fails.
 failT :: forall j d e. Tactic j d e
 failT = Tactic \j -> throwException $ error "failT"
 
+-- | `tryT` either succeeds, or does nothing.
+tryT :: forall j d e. Tactic j d e -> Tactic j d e
+tryT t = orElseT t idT
+
+-- | `repeatT` repeats a tactic for as long as it succeeds. `repeatT` never fails.
+repeatT :: forall j d e. Tactic j d e -> Tactic j d e
+repeatT t = tryT $ t `lazyThenT` defer \_ -> tryT $ repeatT t
+
+-- | The tactics also give rise to another semigroup and monoid structure, given by disjunction and failure.
 newtype AdditiveTactic j d e = AdditiveTactic (Tactic j d e)
 
 getAdditiveTactic :: forall j d e. AdditiveTactic j d e -> Tactic j d e
 getAdditiveTactic (AdditiveTactic t) = t
 
+-- | The semigroup operation is given by `orElseT`.
 instance semigroupAdditiveTactic :: Semigroup (AdditiveTactic j d e) where
   (<>) (AdditiveTactic t1) (AdditiveTactic t2) = AdditiveTactic $ orElseT t1 t2
 
+-- | The monoid arises from the `failT` tactic, which is the unit of `orElseT`.
 instance monoidAdditiveTactic :: Monoid (AdditiveTactic j d e) where
   mempty = AdditiveTactic failT

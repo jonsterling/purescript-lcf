@@ -98,6 +98,22 @@ orElseT :: forall j d e. Tactic j d e -> Tactic j d e -> Tactic j d e
 
 `orElseT` t1 t2` first tries `t1`, and if it fails, then tries `t2`.
 
+#### `tryT`
+
+``` purescript
+tryT :: forall j d e. Tactic j d e -> Tactic j d e
+```
+
+`tryT` either succeeds, or does nothing.
+
+#### `repeatT`
+
+``` purescript
+repeatT :: forall j d e. Tactic j d e -> Tactic j d e
+```
+
+`repeatT` repeats a tactic for as long as it succeeds. `repeatT` never fails.
+
 #### `AdditiveTactic`
 
 ``` purescript
@@ -105,6 +121,7 @@ newtype AdditiveTactic j d e
   = AdditiveTactic (Tactic j d e)
 ```
 
+The tactics also give rise to another semigroup and monoid structure, given by disjunction and failure.
 
 #### `getAdditiveTactic`
 
@@ -119,6 +136,7 @@ getAdditiveTactic :: forall j d e. AdditiveTactic j d e -> Tactic j d e
 instance semigroupAdditiveTactic :: Semigroup (AdditiveTactic j d e)
 ```
 
+The semigroup operation is given by `orElseT`.
 
 #### `monoidAdditiveTactic`
 
@@ -126,6 +144,7 @@ instance semigroupAdditiveTactic :: Semigroup (AdditiveTactic j d e)
 instance monoidAdditiveTactic :: Monoid (AdditiveTactic j d e)
 ```
 
+The monoid arises from the `failT` tactic, which is the unit of `orElseT`.
 
 
 
